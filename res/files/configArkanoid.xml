@@ -1,0 +1,8 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<board>
+  <rows>10</rows>
+  <columns>10</columns>
+  <bricks>5</bricks>
+  <min>1</min>
+  <max>5</max>
+</board>

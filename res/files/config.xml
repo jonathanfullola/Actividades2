@@ -1,0 +1,103 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Enemies>
+  <enemy category="archer">
+    <name>john</name>
+    <vitality>100</vitality>
+    <damages>10</damages>
+    <defense>20</defense>
+    <attackRate>1.20</attackRate>
+    <exp>50</exp>
+
+    <weapons>
+      <weapon>
+        <type>bow</type>
+        <distance>50</distance>
+      </weapon> 
+    
+      <weapon>
+        <type>ballester</type>
+        <distance>80</distance>
+      </weapon> 
+    
+      <weapon>
+        <type>Ak 47</type>
+        <distance>100</distance>
+      </weapon> 
+    
+    </weapons>
+    
+  </enemy>
+  
+
+  <enemy category="lancer">
+    <name>chris</name>
+    <vitality>200</vitality>
+    <damages>20</damages>
+    <defense>40</defense>
+    <attackRate>1.20</attackRate>
+    <exp>80</exp>
+
+    <weapons>
+      <weapon>
+        <type>lance</type>
+        <distance>10</distance>
+      </weapon> 
+    
+      <weapon>
+        <type>rod</type>
+        <distance>8</distance>
+      </weapon> 
+    
+      <weapon>
+        <type>club</type>
+        <distance>5</distance>
+      </weapon> 
+    
+    </weapons>
+    
+  </enemy>
+
+
+  <enemy category="assasin">
+    <name>erty</name>
+    <vitality>150</vitality>
+    <damages>250</damages>
+    <defense>15</defense>
+    <attackRate>1.5</attackRate>
+    <exp>90</exp>
+
+    <weapons>
+      <weapon>
+        <type>knife</type>
+        <distance>4</distance>
+      </weapon> 
+    
+      <weapon>
+        <type>sword</type>
+        <distance>6</distance>
+      </weapon> 
+    
+    </weapons>
+    
+  </enemy>
+
+
+    <enemy category="protector">
+      <name>xitee</name>
+    <vitality>400</vitality>
+    <damages>1</damages>
+    <defense>800</defense>
+    <attackRate>1.00</attackRate>
+    <exp>90</exp>
+
+    <weapons>
+      <weapon>
+        <type>shield</type>
+        <distance>1</distance>
+      </weapon> 
+    
+    </weapons>
+    
+  </enemy>
+
+</Enemies>
