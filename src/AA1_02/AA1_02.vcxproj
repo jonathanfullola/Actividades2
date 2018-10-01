@@ -21,6 +21,10 @@
   <ItemGroup>
     <ClCompile Include="main.cpp" />
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="funciones.h" />
+    <ClInclude Include="tipos.h" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
     <ProjectGuid>{A28997B3-D22D-4523-AE9F-13B2CA428C01}</ProjectGuid>
