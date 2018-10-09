@@ -14,7 +14,7 @@
 #define LIMIT_LEFT 95
 #define NUM_TRIFORCE_WIDTH 60
 #define DELAY 1000 / FPS
-#define GAME_TIME 60
+#define GAME_TIME 120
 
 
 
@@ -32,8 +32,10 @@ int main(int, char*[])
 	std::string timeST = " ";
 	int gameTime = GAME_TIME;
 	int u = 0, d = 0, u2 = 0, d2 = 0;
+	bool gameOver = false;
+	bool mouseClick = false;
 
-	// --- INIT SDL ---
+	// --- INIT SDL --- 
 	if (SDL_Init(SDL_INIT_EVERYTHING) != 0)
 		throw "No es pot inicialitzar SDL subsystems";
 
@@ -64,18 +66,12 @@ int main(int, char*[])
 
 	// --- SPRITES ---
 		//Background
-	SDL_ShowCursor(SDL_DISABLE);
 	SDL_Texture* bgTexture{ IMG_LoadTexture(m_renderer, "../../res/img/zeldaBg.jpg") };
 	if (bgTexture == nullptr) throw "Error: bgTexture init";
 	SDL_Texture* playBgTexture{ IMG_LoadTexture(m_renderer, "../../res/img/field1.jpg") };
 	if (playBgTexture == nullptr) throw "Error: bgTexture init";
-	SDL_Texture *auxPlayBgTexture{};
+	SDL_Texture *auxPlayBgTexture = bgTexture;
 	SDL_Rect bgRect{ 0,0,SCREEN_WIDTH, SCREEN_HEIGHT };
-
-	SDL_Texture *playerTexture{ IMG_LoadTexture(m_renderer, "../../res/img/cursor.png") };
-	if (playerTexture == nullptr) throw "Error: bgTexture init";
-	SDL_Rect playerRect{ 0,0,38,30 }; // x,y, width, heigth
-	SDL_Rect playerTarget{ 0,0,50,50 };
 
 	//-->Animated player1 ---
 	SDL_Texture *playerSpriteTexture{ IMG_LoadTexture(m_renderer, "../../res/img/linkMinish1.png") };
@@ -193,7 +189,7 @@ int main(int, char*[])
 	tmpSurf = { TTF_RenderText_Blended(font,"The legend of Zelda", SDL_Color{ 255,255,0,255 }) };
 	//if (tmpSurf == nullptr) throw "Unable to create the SDL text";
 	SDL_Texture *hoverTexture{ SDL_CreateTextureFromSurface(m_renderer,tmpSurf) };
-	SDL_Texture *auxTexture{ SDL_CreateTextureFromSurface(m_renderer,tmpSurf) };
+	SDL_Texture *auxTexture = textTexture;
 	SDL_Rect textRect{ 57,50, tmpSurf->w,tmpSurf->h };
 
 	//play button
@@ -201,7 +197,7 @@ int main(int, char*[])
 	SDL_Texture *playTexture{ SDL_CreateTextureFromSurface(m_renderer,tmpSurf) };
 	tmpSurf = { TTF_RenderText_Blended(font,"Play", SDL_Color{255,255,0,255}) };
 	SDL_Texture *hoverPlayTexture{ SDL_CreateTextureFromSurface(m_renderer,tmpSurf) };
-	SDL_Texture *auxPlayTexture{ SDL_CreateTextureFromSurface(m_renderer,tmpSurf) };
+	SDL_Texture *auxPlayTexture = playTexture;
 	SDL_Rect playRect{ 80,200, tmpSurf->w,tmpSurf->h };
 
 	//sound off button
@@ -215,7 +211,7 @@ int main(int, char*[])
 	SDL_Texture *soundOnTexture{ SDL_CreateTextureFromSurface(m_renderer,tmpSurf) };
 	tmpSurf = { TTF_RenderText_Blended(font,"Sound on", SDL_Color{255,255,0,255}) };
 	SDL_Texture *hoverSoundOnTexture{ SDL_CreateTextureFromSurface(m_renderer,tmpSurf) };
-	SDL_Texture *auxSoundTexture{ SDL_CreateTextureFromSurface(m_renderer,tmpSurf) }; //auxsound para off y on
+	SDL_Texture *auxSoundTexture = soundOnTexture; //auxsound para off y on
 	SDL_Rect soundRect{ 80,300, tmpSurf->w,tmpSurf->h };
 
 	//exit button
@@ -223,7 +219,7 @@ int main(int, char*[])
 	SDL_Texture *exitTexture{ SDL_CreateTextureFromSurface(m_renderer,tmpSurf) };
 	tmpSurf = { TTF_RenderText_Blended(font,"Exit", SDL_Color{255,255,0,255}) };
 	SDL_Texture *hoverExitTexture{ SDL_CreateTextureFromSurface(m_renderer,tmpSurf) };
-	SDL_Texture *auxExitTexture{ SDL_CreateTextureFromSurface(m_renderer,tmpSurf) };
+	SDL_Texture *auxExitTexture = exitTexture;
 	SDL_Rect exitRect{ 80,400, tmpSurf->w,tmpSurf->h };
 
 	//time number
@@ -246,7 +242,7 @@ int main(int, char*[])
 	clock_t lastTime = clock();
 	float timeDown = 1, deltaTime = 0;
 
-	// --- GAME LOOP ---
+	// --- GAME LOOP --- 
 	SDL_Event event;
 	Uint32 frames;
 	bool isRunning = true;
@@ -262,24 +258,11 @@ int main(int, char*[])
 				isRunning = false;
 				break;
 			case SDL_MOUSEMOTION:
-				playerTarget.x = event.motion.x - 50;
-				playerTarget.y = event.motion.y - 50;
+				v1.x = event.motion.x;
+				v1.y = event.motion.y;
 				break;
 			case SDL_MOUSEBUTTONDOWN:
-				if (inside(playRect.x, playRect.x + playRect.w, playRect.y, playRect.y + playRect.h, v1) && !play) {
-					play = true;
-					u = u2 = d = d2 = 0;
-					gameTime = GAME_TIME;
-					Mix_PauseMusic();
-					Mix_PlayMusic(playMusic, -1);
-					break;
-				}
-				if (inside(soundRect.x, soundRect.x + soundRect.w, soundRect.y, soundRect.y + soundRect.h, v1) && !play) {
-					sound = !sound;
-					break;
-				}
-				if (inside(exitRect.x, exitRect.x + exitRect.w, exitRect.y, exitRect.y + exitRect.h, v1) && !play)
-					isRunning = false;
+				mouseClick = true;
 				break;
 			case SDL_KEYDOWN:
 				//player1
@@ -311,9 +294,7 @@ int main(int, char*[])
 			}
 		}
 
-		// UPDATE
-		playerRect.x += (playerTarget.x - playerRect.x) + 46;
-		playerRect.y += (playerTarget.y - playerRect.y) + 48;
+		// UPDATE 
 		v1.x = event.motion.x;
 		v1.y = event.motion.y;
 
@@ -323,8 +304,28 @@ int main(int, char*[])
 		deltaTime /= CLOCKS_PER_SEC;
 		timeDown -= deltaTime;
 		if (play && timeDown <= 0) { gameTime--; timeDown = 1; }
-		if (gameTime <= 0) play = false;
+		if (gameTime <= 0) gameOver = true;
 
+		//check game over state
+		if (gameOver)
+		{
+			gameTime = GAME_TIME;
+			play = false;
+			u = u2 = d = d2 = 0;
+			gameOver = false;
+		}
+
+		if (mouseClick)
+		{
+			if (inside(playRect.x, playRect.x + playRect.w, playRect.y, playRect.y + playRect.h, v1) && !play) {
+				play = true;
+				Mix_PauseMusic();
+				Mix_PlayMusic(playMusic, -1);
+			}else if (inside(soundRect.x, soundRect.x + soundRect.w, soundRect.y, soundRect.y + soundRect.h, v1) && !play) {
+				sound = !sound;
+			}else if (inside(exitRect.x, exitRect.x + exitRect.w, exitRect.y, exitRect.y + exitRect.h, v1) && !play)
+				isRunning = false;
+		}
 
 		if (!play) {
 
@@ -368,7 +369,6 @@ int main(int, char*[])
 			auxPlayBgTexture = playBgTexture;
 		}
 
-		//if (!checkCollision(playerSpritePosition, player2SpritePosition)) {
 		//movement player1
 		if (UP && !checkUpCollision(playerSpritePosition.y, LIMIT_UP)) { playerSpritePosition.y -= 3; }
 		else if (DOWN && !checkDownCollision(playerSpritePosition.y + frameHeight, SCREEN_HEIGHT - LIMIT_DOWN)) { playerSpritePosition.y += 3; }
@@ -379,8 +379,7 @@ int main(int, char*[])
 		if (UP2 && !checkUpCollision(player2SpritePosition.y, LIMIT_UP)) { player2SpritePosition.y -= 3; }
 		else if (DOWN2 && !checkDownCollision(player2SpritePosition.y + frameHeight, SCREEN_HEIGHT - LIMIT_DOWN)) { player2SpritePosition.y += 3; }
 		else if (RIGHT2 && !checkRightCollision(player2SpritePosition.x + frameWidth, SCREEN_WIDTH - LIMIT_RIGHT)) { player2SpritePosition.x += 3; }
-		else if (LEFT2 && !checkLeftCollision(player2SpritePosition.x, LIMIT_LEFT)) { player2SpritePosition.x -= 3; }
-		//}else 
+		else if (LEFT2 && !checkLeftCollision(player2SpritePosition.x, LIMIT_LEFT)) { player2SpritePosition.x -= 3; } 
 		
 		//sprite update
 		frameTimeSprite++;
@@ -517,8 +516,8 @@ int main(int, char*[])
 		dRect.x = dFrameWidth * d;
 		u2Rect.x = u2FrameWidth * u2;
 		d2Rect.x = d2FrameWidth * d2;
-
-
+		mouseClick = false;
+ 
 		// DRAW
 		SDL_RenderClear(m_renderer);
 
@@ -555,7 +554,6 @@ int main(int, char*[])
 		}
 
 		//cursor
-		SDL_RenderCopy(m_renderer, playerTexture, nullptr, &playerRect);
 		SDL_RenderPresent(m_renderer);
 
 		//frame control
@@ -575,7 +573,6 @@ int main(int, char*[])
 	SDL_DestroyTexture(hoverSoundOffTexture);
 	SDL_DestroyTexture(soundOnTexture);
 	SDL_DestroyTexture(hoverSoundOnTexture);
-	SDL_DestroyTexture(playerTexture);
 	SDL_DestroyTexture(bgTexture);
 	SDL_DestroyTexture(textTexture);
 	SDL_DestroyTexture(hoverTexture);
@@ -588,6 +585,11 @@ int main(int, char*[])
 	SDL_DestroyTexture(player2SpriteTexture);
 	SDL_DestroyTexture(triforceSprite);
 	SDL_DestroyTexture(rupeeSprite);
+	SDL_DestroyTexture(uSprite);
+	SDL_DestroyTexture(u2Sprite);
+	SDL_DestroyTexture(dSprite);
+	SDL_DestroyTexture(d2Sprite);
+	SDL_DestroyTexture(timeValue);
 
 	IMG_Quit();
 	TTF_Quit();
