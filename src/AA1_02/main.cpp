@@ -246,17 +246,17 @@ int main(int, char*[])
 	// --- GAME LOOP --- 
 	SDL_Event event;
 	Uint32 frames;
-	bool isRunning = true;
+	//bool isRunning = true;
 	int frameTime = 0;
 	Mix_PlayMusic(music, -1);
 	srand(time(NULL));
-	while (isRunning) {
+	while (sceneGame != type::GameState::EXIT) {
 		frames = SDL_GetTicks();
 		// HANDLE EVENTS
 		while (SDL_PollEvent(&event)) {
 			switch (event.type) {
 			case SDL_QUIT:
-				isRunning = false;
+				sceneGame = type::GameState::EXIT;
 				break;
 			case SDL_MOUSEMOTION:
 				v1.x = event.motion.x;
@@ -267,7 +267,7 @@ int main(int, char*[])
 				break;
 			case SDL_KEYDOWN:
 				//player1
-				if (event.key.keysym.sym == SDLK_ESCAPE) isRunning = false;
+				if (event.key.keysym.sym == SDLK_ESCAPE) sceneGame = type::GameState::EXIT;
 				else if (event.key.keysym.sym == SDLK_w) { UP = true; notUP = notDOWN = notRIGHT = notLEFT = false; }
 				else if (event.key.keysym.sym == SDLK_s) { DOWN = true; notUP = notDOWN = notRIGHT = notLEFT = false; }
 				else if (event.key.keysym.sym == SDLK_d) { RIGHT = true; notUP = notDOWN = notRIGHT = notLEFT = false; }
@@ -317,7 +317,7 @@ int main(int, char*[])
 				sound = !sound;
 			}
 			else if (checkSquarePointCollision(exitRect, v1) && sceneGame != type::GameState::PLAY)
-				isRunning = false;
+				sceneGame = type::GameState::GAMEOVER;
 		}
 
 		switch (sceneGame)

@@ -12,6 +12,6 @@ namespace type
 		int x;
 		int y;
 	};
-	enum class GameState{ PLAY, MENU, GAMEOVER };
+	enum class GameState{ PLAY, MENU, GAMEOVER, EXIT };
 
 }
