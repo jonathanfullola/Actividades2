@@ -21,7 +21,8 @@
 int main(int, char*[])
 {
 	type::vec2 v1;
-	bool play = false;
+	type::GameState sceneGame = type::GameState::MENU;
+	
 	bool sound = true;
 	bool UP, DOWN, RIGHT, LEFT,notUP,notDOWN,notRIGHT,notLEFT;
 	UP = DOWN = RIGHT = LEFT = notUP = notRIGHT = notLEFT = false;
@@ -84,7 +85,7 @@ int main(int, char*[])
 	playerSpriteRect.x = playerSpriteRect.y = 0;
 	playerSpritePosition.h = playerSpriteRect.h = frameHeight;
 	playerSpritePosition.w = playerSpriteRect.w = frameWidth;
-	int frameTimeSprite = 0;
+	int frameTimeSprite = 1;
 
 	//-->Animated player2 ---
 	SDL_Texture *player2SpriteTexture{ IMG_LoadTexture(m_renderer, "../../res/img/linkMinish2.png") };
@@ -267,14 +268,14 @@ int main(int, char*[])
 			case SDL_KEYDOWN:
 				//player1
 				if (event.key.keysym.sym == SDLK_ESCAPE) isRunning = false;
-				else if (event.key.keysym.sym == SDLK_w) { UP = true; notUP = notDOWN = notRIGHT = notLEFT = false;	}
+				else if (event.key.keysym.sym == SDLK_w) { UP = true; notUP = notDOWN = notRIGHT = notLEFT = false; }
 				else if (event.key.keysym.sym == SDLK_s) { DOWN = true; notUP = notDOWN = notRIGHT = notLEFT = false; }
 				else if (event.key.keysym.sym == SDLK_d) { RIGHT = true; notUP = notDOWN = notRIGHT = notLEFT = false; }
 				else if (event.key.keysym.sym == SDLK_a) { LEFT = true; notUP = notDOWN = notRIGHT = notLEFT = false; }
-				
+
 				//player2
 				else if (event.key.keysym.sym == SDLK_UP) { UP2 = true; notUP2 = notDOWN2 = notRIGHT2 = notLEFT2 = false; }
-				else if (event.key.keysym.sym == SDLK_DOWN)	{DOWN2 = true; notUP2 = notDOWN2 = notRIGHT2 = notLEFT2 = false;}
+				else if (event.key.keysym.sym == SDLK_DOWN) { DOWN2 = true; notUP2 = notDOWN2 = notRIGHT2 = notLEFT2 = false; }
 				else if (event.key.keysym.sym == SDLK_RIGHT) { RIGHT2 = true; notUP2 = notDOWN2 = notRIGHT2 = notLEFT2 = false; }
 				else if (event.key.keysym.sym == SDLK_LEFT) { LEFT2 = true; notUP2 = notDOWN2 = notRIGHT2 = notLEFT2 = false; }
 				break;
@@ -295,48 +296,41 @@ int main(int, char*[])
 		}
 
 		// UPDATE 
-		v1.x = event.motion.x;
-		v1.y = event.motion.y;
 
 		//deltaTime
 		deltaTime = (clock() - lastTime);
 		lastTime = clock();
 		deltaTime /= CLOCKS_PER_SEC;
 		timeDown -= deltaTime;
-		if (play && timeDown <= 0) { gameTime--; timeDown = 1; }
-		if (gameTime <= 0) gameOver = true;
+		if (sceneGame== type::GameState::PLAY && timeDown <= 0) { gameTime--; timeDown = 1; }
+		if (gameTime <= 0) sceneGame = type::GameState::GAMEOVER;
 
-		//check game over state
-		if (gameOver)
-		{
-			gameTime = GAME_TIME;
-			play = false;
-			u = u2 = d = d2 = 0;
-			gameOver = false;
-		}
 
 		if (mouseClick)
 		{
-			if (inside(playRect.x, playRect.x + playRect.w, playRect.y, playRect.y + playRect.h, v1) && !play) {
-				play = true;
+			if (checkSquarePointCollision(playRect, v1) && sceneGame != type::GameState::PLAY) {
+				sceneGame = type::GameState::PLAY;
 				Mix_PauseMusic();
 				Mix_PlayMusic(playMusic, -1);
-			}else if (inside(soundRect.x, soundRect.x + soundRect.w, soundRect.y, soundRect.y + soundRect.h, v1) && !play) {
+			}
+			else if (checkSquarePointCollision(soundRect, v1) && sceneGame != type::GameState::PLAY) {
 				sound = !sound;
-			}else if (inside(exitRect.x, exitRect.x + exitRect.w, exitRect.y, exitRect.y + exitRect.h, v1) && !play)
+			}
+			else if (checkSquarePointCollision(exitRect, v1) && sceneGame != type::GameState::PLAY)
 				isRunning = false;
 		}
 
-		if (!play) {
-
+		switch (sceneGame)
+		{
+		case type::GameState::MENU:
 			//text
-			if (inside(textRect.x, textRect.x + textRect.w, textRect.y, textRect.y + textRect.h, v1))
+			if (checkSquarePointCollision(textRect, v1))
 				auxTexture = hoverTexture;
 			else
 				auxTexture = textTexture;
 
 			//play
-			if (inside(playRect.x, playRect.x + playRect.w, playRect.y, playRect.y + playRect.h, v1))
+			if (checkSquarePointCollision(playRect, v1))
 				auxPlayTexture = hoverPlayTexture;
 			else
 				auxPlayTexture = playTexture;
@@ -344,54 +338,32 @@ int main(int, char*[])
 			//sonido
 			if (!sound) {
 				Mix_PauseMusic();
-				if (inside(soundRect.x, soundRect.x + soundRect.w, soundRect.y, soundRect.y + soundRect.h, v1))
+				if (checkSquarePointCollision(soundRect, v1))
 					auxSoundTexture = hoverSoundOffTexture;
 				else
 					auxSoundTexture = soundOffTexture;
 			}
 			else {
 				Mix_ResumeMusic();
-				if (inside(soundRect.x, soundRect.x + soundRect.w, soundRect.y, soundRect.y + soundRect.h, v1))
+				if (checkSquarePointCollision(soundRect, v1))
 					auxSoundTexture = hoverSoundOnTexture;
 				else
 					auxSoundTexture = soundOnTexture;
 			}
 
 			//exit
-			if (inside(exitRect.x, exitRect.x + exitRect.w, exitRect.y, exitRect.y + exitRect.h, v1))
+			if (checkSquarePointCollision(exitRect, v1))
 				auxExitTexture = hoverExitTexture;
 			else
 				auxExitTexture = exitTexture;
 
 			auxPlayBgTexture = bgTexture;
-		}
-		else {
-			auxPlayBgTexture = playBgTexture;
-		}
 
-		//movement player1
-		if (UP && !checkUpCollision(playerSpritePosition.y, LIMIT_UP)) { playerSpritePosition.y -= 3; }
-		else if (DOWN && !checkDownCollision(playerSpritePosition.y + frameHeight, SCREEN_HEIGHT - LIMIT_DOWN)) { playerSpritePosition.y += 3; }
-		else if (RIGHT && !checkRightCollision(playerSpritePosition.x + frameWidth, SCREEN_WIDTH - LIMIT_RIGHT)) { playerSpritePosition.x += 3; }
-		else if (LEFT && !checkLeftCollision(playerSpritePosition.x, LIMIT_LEFT)) { playerSpritePosition.x -= 3; }
+			frameVelocity = 40;
 
-		//movement player2
-		if (UP2 && !checkUpCollision(player2SpritePosition.y, LIMIT_UP)) { player2SpritePosition.y -= 3; }
-		else if (DOWN2 && !checkDownCollision(player2SpritePosition.y + frameHeight, SCREEN_HEIGHT - LIMIT_DOWN)) { player2SpritePosition.y += 3; }
-		else if (RIGHT2 && !checkRightCollision(player2SpritePosition.x + frameWidth, SCREEN_WIDTH - LIMIT_RIGHT)) { player2SpritePosition.x += 3; }
-		else if (LEFT2 && !checkLeftCollision(player2SpritePosition.x, LIMIT_LEFT)) { player2SpritePosition.x -= 3; } 
-		
-		//sprite update
-		frameTimeSprite++;
-
-		if (!play) frameVelocity = 40;
-		else frameVelocity = 9;
-
-		if (FPS / frameTimeSprite <= frameVelocity)
-		{
-			frameTimeSprite = 0;
-
-			if (!play) {
+			if (FPS / frameTimeSprite <= frameVelocity)
+			{
+				frameTimeSprite = 0;
 				triforceRect.x += triforceFrameWidth;
 				if (triforceRect.x >= triforceWidth)
 					triforceRect.x = 0;
@@ -399,8 +371,28 @@ int main(int, char*[])
 				triforceRect.y = 0;
 				if (triforceRect.x >= triforceFrameWidth * NUM_TRIFORCE_WIDTH) triforceRect.x = 0;
 			}
-			else {
+			mouseClick = false;
 
+			break;
+		case type::GameState::PLAY:
+			auxPlayBgTexture = playBgTexture;
+			frameVelocity = 9;
+
+			//movement player1
+			if (UP && !checkUpCollision(playerSpritePosition.y, LIMIT_UP)) { playerSpritePosition.y -= 3; }
+			else if (DOWN && !checkDownCollision(playerSpritePosition.y + frameHeight, SCREEN_HEIGHT - LIMIT_DOWN)) { playerSpritePosition.y += 3; }
+			else if (RIGHT && !checkRightCollision(playerSpritePosition.x + frameWidth, SCREEN_WIDTH - LIMIT_RIGHT)) { playerSpritePosition.x += 3; }
+			else if (LEFT && !checkLeftCollision(playerSpritePosition.x, LIMIT_LEFT)) { playerSpritePosition.x -= 3; }
+
+			//movement player2
+			if (UP2 && !checkUpCollision(player2SpritePosition.y, LIMIT_UP)) { player2SpritePosition.y -= 3; }
+			else if (DOWN2 && !checkDownCollision(player2SpritePosition.y + frameHeight, SCREEN_HEIGHT - LIMIT_DOWN)) { player2SpritePosition.y += 3; }
+			else if (RIGHT2 && !checkRightCollision(player2SpritePosition.x + frameWidth, SCREEN_WIDTH - LIMIT_RIGHT)) { player2SpritePosition.x += 3; }
+			else if (LEFT2 && !checkLeftCollision(player2SpritePosition.x, LIMIT_LEFT)) { player2SpritePosition.x -= 3; }
+
+			if (FPS / frameTimeSprite <= frameVelocity)
+			{
+				frameTimeSprite = 0;
 				rupeeRect.x += rupeeFrameWidth;
 				if (rupeeRect.x >= rupeeWidth) rupeeRect.x = 0;
 				rupeeRect.y = 0;
@@ -488,35 +480,42 @@ int main(int, char*[])
 
 			}
 
-			//score int to string
-			timeST = std::to_string(gameTime);
-			const char *timeNumber = timeST.c_str();
-
 			//modify tmpsurf time
-			tmpSurf = { TTF_RenderText_Blended(font,timeNumber, SDL_Color{255,255,0,255}) };
+			tmpSurf = { TTF_RenderText_Blended(font,std::to_string(gameTime).c_str(), SDL_Color{255,255,0,255}) };
 			timeValue = { SDL_CreateTextureFromSurface(m_renderer,tmpSurf) };
 			timeRect = { (SCREEN_WIDTH / 2 - tmpSurf->w / 2),35, tmpSurf->w,tmpSurf->h };
 
 			//check if a player collides with the rupee
-			if (checkCollision(rupeePosition, playerSpritePosition) ) {
+			if (checkSquaresCollision(rupeePosition, playerSpritePosition)) {
 				u++;
 				if (u >= 10) { d++; u = 0; }
 				randomGen(rupeePosition);
 				Mix_PlayChannel(-1, rupee, 0);
 			}
-			if (checkCollision(rupeePosition, player2SpritePosition)) {
+			if (checkSquaresCollision(rupeePosition, player2SpritePosition)) {
 				u2++;
 				if (u2 >= 10) { d2++; u2 = 0; }
 				randomGen(rupeePosition);
 				Mix_PlayChannel(-1, rupee, 0);
-			}	
-		}
-
-		uRect.x = uFrameWidth * u;
-		dRect.x = dFrameWidth * d;
-		u2Rect.x = u2FrameWidth * u2;
-		d2Rect.x = d2FrameWidth * d2;
-		mouseClick = false;
+			}
+		
+			uRect.x = uFrameWidth * u;
+			dRect.x = dFrameWidth * d;
+			u2Rect.x = u2FrameWidth * u2;
+			d2Rect.x = d2FrameWidth * d2;
+			mouseClick = false;			
+			break;
+		case type::GameState::GAMEOVER:
+			gameTime = GAME_TIME;
+			sceneGame = type::GameState::PLAY;
+			u = u2 = d = d2 = 0;
+			break;
+		default:
+			break;
+		}			   
+		
+		//sprite update
+		frameTimeSprite++;		
  
 		// DRAW
 		SDL_RenderClear(m_renderer);
@@ -524,19 +523,10 @@ int main(int, char*[])
 		//Background
 		SDL_RenderCopy(m_renderer, auxPlayBgTexture, nullptr, &bgRect);
 
-		if (!play) {
-			//pintar titulo + hoverTitulo
-			SDL_RenderCopy(m_renderer, auxTexture, nullptr, &textRect);
-			//pintar play + hoverPlay
-			SDL_RenderCopy(m_renderer, auxPlayTexture, nullptr, &playRect);
-			//pintar sound + hover
-			SDL_RenderCopy(m_renderer, auxSoundTexture, nullptr, &soundRect);
-			//pintar exit + hoverPlay
-			SDL_RenderCopy(m_renderer, auxExitTexture, nullptr, &exitRect);
-			//pintar triforce
-			SDL_RenderCopy(m_renderer, triforceSprite, &triforceRect, &triforcePosition);
-		}
-		else {
+
+		switch (sceneGame)
+		{
+		case type::GameState::PLAY:
 			//player1
 			SDL_RenderCopy(m_renderer, playerSpriteTexture, &playerSpriteRect, &playerSpritePosition);
 			//player2
@@ -551,6 +541,22 @@ int main(int, char*[])
 			SDL_RenderCopy(m_renderer, d2Sprite, &d2Rect, &d2Position);
 			//pintar time
 			SDL_RenderCopy(m_renderer, timeValue, nullptr, &timeRect);
+			break;
+		case type::GameState::MENU:
+			//pintar titulo + hoverTitulo
+			SDL_RenderCopy(m_renderer, auxTexture, nullptr, &textRect);
+			//pintar play + hoverPlay
+			SDL_RenderCopy(m_renderer, auxPlayTexture, nullptr, &playRect);
+			//pintar sound + hover
+			SDL_RenderCopy(m_renderer, auxSoundTexture, nullptr, &soundRect);
+			//pintar exit + hoverPlay
+			SDL_RenderCopy(m_renderer, auxExitTexture, nullptr, &exitRect);
+			//pintar triforce
+			SDL_RenderCopy(m_renderer, triforceSprite, &triforceRect, &triforcePosition);
+			break;
+
+		default:
+			break;
 		}
 
 		//cursor
